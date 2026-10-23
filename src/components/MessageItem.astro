@@ -81,13 +81,13 @@ const isPdf = (name: string) => /\.pdf$/i.test(name);
 
       {message.embeds?.length ? (
         <div class="mt-2 space-y-2 max-w-2xl">
-          {message.embeds.map((e: { title?: string; description?: string; url?: string; fields?: Array<{ name?: string; value?: string }> }) => (
+          {message.embeds.map((e: any) => (
             <div class="rounded-md border border-line bg-panel/60 px-3 py-2">
               {e.title ? <div class="text-sm font-semibold text-slate-200">{e.title}</div> : null}
               {e.description ? <div class="mt-1 text-sm discord-message-stream" set:html={renderMd(e.description)} /> : null}
               {e.fields?.length ? (
                 <div class="mt-2 grid gap-1">
-                  {e.fields.map((f: { name?: string; value?: string }) => (
+                  {e.fields.map((f: any) => (
                     <div class="text-xs">
                       {f.name ? <span class="font-semibold text-slate-300">{f.name}: </span> : null}
                       {f.value ? <span class="text-slate-300" set:html={renderMd(f.value)} /> : null}
