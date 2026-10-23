@@ -1,4 +1,5 @@
 ---
+import { withBase } from '@/lib/url';
 // @ts-nocheck
 import { Marked } from 'marked';
 import { markedHighlight } from 'marked-highlight';
@@ -72,7 +73,7 @@ const isPdf = (name: string) => /\.pdf$/i.test(name);
         ) : null}
 
       {message.thread ? (
-        <a href={`/threads/${message.thread.id}`} class="mt-2 block max-w-lg rounded-md bg-panel border border-line px-3 py-2 hover:border-blurple transition-colors">
+        <a href={withBase(`/threads/${message.thread.id}`)} class="mt-2 block max-w-lg rounded-md bg-panel border border-line px-3 py-2 hover:border-blurple transition-colors">
           <div class="text-sm font-semibold text-slate-200">{message.thread.name} <span class="text-blue-300">›</span></div>
           <div class="text-xs text-muted mt-1">{message.thread.messageCount} messages{message.thread.preview ? ` · ${message.thread.preview}` : ''}</div>
         </a>
