@@ -128,8 +128,9 @@ function cmpSnowflake(a: string, b: string) {
   return A < B ? -1 : A > B ? 1 : 0;
 }
 
-function slugify(s: string) {
-  return s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+function slugify(s: string, id: string) {
+  const readable = s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+  return readable || `channel-${id}`;
 }
 
 function isPublicChannel(channel: Channel) {
@@ -309,7 +310,7 @@ async function writeChannelPages(channel: Channel, messages: StoredMessage[]) {
     await fs.writeFile(file, JSON.stringify({
       channelId: channel.id,
       channelName: channel.name,
-      channelSlug: slugify(channel.name),
+      channelSlug: slugify(channel.name, channel.id),
       pageNumber,
       totalPages: pages.length,
       messages: pages[i]
@@ -514,7 +515,7 @@ async function main() {
       indexItems.push({
         id: channel.id,
         name: channel.name,
-        slug: slugify(channel.name),
+        slug: slugify(channel.name, channel.id),
         totalMessages: stored.length,
         totalPages,
         channelType: channel.type
