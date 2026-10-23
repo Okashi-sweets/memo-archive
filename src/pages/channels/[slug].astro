@@ -1,4 +1,5 @@
 ---
+import { withBase } from '@/lib/url';
 import MainLayout from '@/layouts/MainLayout.astro';
 import Breadcrumbs from '@/components/Breadcrumbs.astro';
 import MessageItem from '@/components/MessageItem.astro';
@@ -20,7 +21,7 @@ const messagePageMap = channel ? await getMessagePageMap(channel.id) : new Map<s
 const inviteUrl = import.meta.env.PUBLIC_DISCORD_INVITE_URL || '';
 const hasInvite = Boolean(inviteUrl);
 
-const olderHref = currentPage > 1 ? `/channels/${slug}/page/${currentPage - 1}` : null;
+const olderHref = currentPage > 1 ? withBase(`/channels/${slug}/page/${currentPage - 1}`) : null;
 const isForum = channel?.channelType === 15;
 
 function shouldShowAuthor(messages: Array<{ author: string; timestamp: string }>, i: number) {
@@ -34,7 +35,7 @@ function shouldShowAuthor(messages: Array<{ author: string; timestamp: string }>
 <MainLayout title={`#${channel?.name ?? slug}`} channels={channels}>
   <section>
     <header class="fixed top-0 left-0 right-0 lg:left-[280px] z-20 bg-background/95 backdrop-blur border-b border-line pb-3 px-4 lg:px-8 pt-4">
-      <Breadcrumbs items={[{ label: 'Channels', href: '/channels' }, { label: `#${channel?.name ?? slug}`, href: `/channels/${slug}` }]} />
+      <Breadcrumbs items={[{ label: 'Channels', href: withBase("/channels") }, { label: `#${channel?.name ?? slug}`, href: withBase(`/channels/${slug}`) }]} />
       <h1 class="text-xl md:text-2xl font-semibold flex items-center gap-2"><ChannelIcon kind={channel?.iconKind} className="h-5 w-5 text-muted" /> {channel?.name}</h1>
     </header>
 
@@ -50,7 +51,7 @@ function shouldShowAuthor(messages: Array<{ author: string; timestamp: string }>
       {!pageData || !pageData.messages?.length ? null : isForum ? (
         <div class="space-y-3">
           {pageData.messages.map((m) => (
-            <a href={`/threads/${m.thread?.id}`} class="block rounded-lg border border-line bg-surface p-4 hover:border-blurple transition-colors">
+            <a href={withBase(`/threads/${m.thread?.id}`)} class="block rounded-lg border border-line bg-surface p-4 hover:border-blurple transition-colors">
               <div class="text-sm font-semibold text-slate-200 flex items-center gap-2"><span aria-hidden="true">💬</span>{m.thread?.name || m.content || 'Thread'}</div>
               <div class="mt-1 text-sm text-slate-300 line-clamp-2">{m.thread?.preview || m.content || ''}</div>
               <div class="mt-2 text-xs text-muted"><time data-local-time datetime={m.timestamp}>{new Date(m.timestamp).toISOString()}</time> · {m.author} · {m.thread?.messageCount || 0} {t('messagesWord')}</div>
@@ -62,7 +63,7 @@ function shouldShowAuthor(messages: Array<{ author: string; timestamp: string }>
           {pageData.messages.map((m, i) => {
             const targetPage = m.replyTo?.id ? messagePageMap.get(m.replyTo.id) : undefined;
             const msg = targetPage
-              ? { ...m, replyTo: { ...m.replyTo, href: targetPage === currentPage ? `#m-${m.replyTo?.id}` : `/channels/${slug}/page/${targetPage}#m-${m.replyTo?.id}` } }
+              ? { ...m, replyTo: { ...m.replyTo, href: targetPage === currentPage ? `#m-${m.replyTo?.id}` : withBase(`/channels/${slug}/page/${targetPage}#m-${m.replyTo?.id}`) } }
               : m;
             return <MessageItem message={msg} showAuthor={shouldShowAuthor(pageData.messages, i)} />;
           })}
