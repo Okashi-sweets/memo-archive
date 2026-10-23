@@ -7,7 +7,8 @@ const rawSite = process.env.SITE_URL || 'https://example.github.io/discord-seo-m
 const site = /^https?:\/\//i.test(rawSite) ? rawSite : `https://${rawSite}`;
 
 export default defineConfig({
-  site,
+  site: new URL(site).origin,
+  base: new URL(site).pathname.replace(/\/$/, '') || '/',
   integrations: [tailwind(), sitemap(), react()],
   markdown: {
     shikiConfig: { theme: 'github-dark' }
