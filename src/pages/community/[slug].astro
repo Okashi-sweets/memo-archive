@@ -19,7 +19,7 @@ const channel = channels.find((c) => c.slug === channelSlug);
 const page = channel ? await getChannelPage(channel.id, pageNumber) : null;
 ---
 <MainLayout title={`Community · ${slug}`} channels={channels}>
-  <Breadcrumbs items={[{ label: 'Community', href: withBase("/") }, { label: `#${channel?.name ?? 'unknown'}`, href: channel ? `/channels/${channel.slug}` : withBase("/channels") }, { label: `Page ${pageNumber}` }]} />
+  <Breadcrumbs items={[{ label: 'Community', href: withBase("/") }, { label: `#${channel?.name ?? 'unknown'}`, href: channel ? withBase(`/channels/${channel.slug}`) : withBase("/channels") }, { label: `Page ${pageNumber}` }]} />
 
   {page ? (
     <article class="p-1 md:p-2">
