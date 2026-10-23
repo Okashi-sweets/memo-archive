@@ -65,17 +65,7 @@ for (const channel of channels) {
   <body>
     <div class="min-h-screen">
       <aside class="border-r border-line bg-surface p-4 hidden lg:block fixed left-0 top-0 h-screen w-[280px] overflow-y-auto">
-        <a href={withBase("/")} class="font-semibold text-lg flex items-center gap-2">
-          {siteMeta.serverIconUrl ? <img src={siteMeta.serverIconUrl} alt={siteMeta.serverName} class="h-6 w-6 rounded-full" /> : null}
-          <span>{siteMeta.serverName}</span>
-        </a>
-        <p class="text-muted text-sm mt-1">{t('discordCommunity')}{membersLabel ? ` · ${membersLabel}` : ''}</p>
-        {hasInvite ? (
-          <a href={inviteUrl} target="_blank" rel="noreferrer" class="mt-3 flex w-full items-center justify-center rounded-md bg-blurple px-3 py-2 text-sm font-medium text-white hover:opacity-95">
-            Join to the community
-          </a>
-        ) : null}
-        <nav class="mt-6 space-y-1">
+        <nav class="space-y-1">
 
           {[...groups.entries()].map(([cat, list]) => (
             <div class="pt-3">
