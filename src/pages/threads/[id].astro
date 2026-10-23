@@ -1,4 +1,5 @@
 ---
+import { withBase } from '@/lib/url';
 import MainLayout from '@/layouts/MainLayout.astro';
 import Breadcrumbs from '@/components/Breadcrumbs.astro';
 import MessageItem from '@/components/MessageItem.astro';
@@ -30,8 +31,8 @@ function shouldShowAuthor(messages: Array<{ author: string; timestamp: string }>
     <section>
       <header class="fixed top-0 left-0 right-0 lg:left-[280px] z-20 bg-background/95 backdrop-blur border-b border-line pb-3 px-4 lg:px-8 pt-4">
         <Breadcrumbs items={[
-          { label: 'Channels', href: '/channels' },
-          { label: `#${parent?.name ?? 'channel'}`, href: parent ? `/channels/${parent.slug}` : '/channels' },
+          { label: 'Channels', href: withBase("/channels") },
+          { label: `#${parent?.name ?? 'channel'}`, href: parent ? `/channels/${parent.slug}` : withBase("/channels") },
           { label: thread.name }
         ]} />
         <h1 class="text-xl md:text-2xl font-semibold">{thread.name}</h1>
