@@ -33,13 +33,6 @@ const olderHref = currentPage > 1 ? withBase(`/channels/${slug}/page/${currentPa
 const newerHref = channel && currentPage < channel.totalPages ? withBase(`/channels/${slug}/page/${currentPage + 1}`) : null;
 const isForum = channel?.channelType === 15;
 
-function shouldShowAuthor(messages: Array<{ author: string; timestamp: string }>, i: number) {
-  const prev = messages[i - 1];
-  if (!prev) return true;
-  const withinHour = (new Date(messages[i].timestamp).getTime() - new Date(prev.timestamp).getTime()) <= 3600000;
-  const sameAuthor = prev.author === messages[i].author;
-  return !(sameAuthor && withinHour);
-}
 ---
 <MainLayout title={`#${channel?.name ?? slug}`} channels={channels}>
   <section>
@@ -68,18 +61,18 @@ function shouldShowAuthor(messages: Array<{ author: string; timestamp: string }>
                   {m.thread.tags.map((tag: string) => <span class="rounded bg-panel px-2 py-0.5 text-xs text-muted">{tag}</span>)}
                 </div>
               ) : null}
-              <div class="mt-2 text-xs text-muted"><time data-local-time datetime={m.timestamp}>{new Date(m.timestamp).toISOString()}</time> · {m.author} · {m.thread?.messageCount || 0} {t('messagesWord')}</div>
+              <div class="mt-2 text-xs text-muted">{m.thread?.messageCount || 0} {t('messagesWord')}</div>
             </a>
           ))}
         </div>
       ) : (
         <>
-          {pageData.messages.map((m, i) => {
+          {pageData.messages.map((m) => {
             const targetPage = m.replyTo?.id ? messagePageMap.get(m.replyTo.id) : undefined;
             const msg = targetPage
               ? { ...m, replyTo: { ...m.replyTo, href: targetPage === currentPage ? `#m-${m.replyTo?.id}` : withBase(`/channels/${slug}/page/${targetPage}#m-${m.replyTo?.id}`) } }
               : m;
-            return <MessageItem message={msg} showAuthor={shouldShowAuthor(pageData.messages, i)} />;
+            return <MessageItem message={msg} />;
           })}
         </>
       )}
