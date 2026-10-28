@@ -198,6 +198,7 @@ export async function getChannelPage(channelId: string, pageNumber: number) {
           messageCount: number;
           lastMessageAt?: string;
           preview?: string;
+          tags?: string[];
         };
       }>;
     };
