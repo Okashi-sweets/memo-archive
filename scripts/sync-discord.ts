@@ -14,6 +14,7 @@ type Channel = {
   type: number;
   position?: number;
   parent_id?: string | null;
+  available_tags?: Array<{ id: string; name: string }>;
   permission_overwrites?: { id: string; type: number; allow: string; deny: string }[];
 };
 
@@ -30,6 +31,9 @@ type Guild = {
 type ForumThread = {
   id: string;
   name: string;
+  parent_id?: string;
+  applied_tags?: string[];
+  thread_metadata?: { archive_timestamp?: string };
 };
 
 type DiscordMessage = {
@@ -88,6 +92,7 @@ type StoredMessage = {
     messageCount: number;
     lastMessageAt?: string;
     preview?: string;
+    tags?: string[];
   };
 };
 
@@ -97,6 +102,7 @@ type ThreadSummary = {
   messageCount: number;
   lastMessageAt?: string;
   preview?: string;
+  tags?: string[];
 };
 
 type ChannelState = { initialized?: boolean; lastMessageId?: string };
@@ -250,7 +256,8 @@ function toStoredMessage(m: DiscordMessage, threads: Map<string, ThreadSummary>)
           name: threadSummary.name,
           messageCount: threadSummary.messageCount,
           lastMessageAt: threadSummary.lastMessageAt,
-          preview: threadSummary.preview
+          preview: threadSummary.preview,
+        tags: threadSummary.tags
         }
       : undefined
   };
@@ -370,23 +377,33 @@ async function writeThread(threadId: string, payload: { id: string; name: string
   await fs.writeFile(path.join(THREADS_DIR, `${threadId}.json`), JSON.stringify(payload), 'utf8');
 }
 
-async function fetchForumThreads(forumChannelId: string): Promise<ForumThread[]> {
+async function fetchActiveThreads(): Promise<ForumThread[]> {
+  const response = await api<{ threads: ForumThread[] }>(`/guilds/${env.guildId}/threads/active`);
+  return response.threads || [];
+}
+
+async function fetchForumThreads(forumChannelId: string, activeThreads: ForumThread[]): Promise<ForumThread[]> {
   const out = new Map<string, ForumThread>();
-
-  try {
-    const active = await api<{ threads?: Array<{ id: string; name: string }> }>(`/channels/${forumChannelId}/threads/active`);
-    for (const t of active.threads || []) out.set(t.id, { id: t.id, name: t.name || `Thread ${t.id}` });
-  } catch {
-    // ignore
+  for (const thread of activeThreads) {
+    if (thread.parent_id === forumChannelId) out.set(thread.id, thread);
   }
 
-  try {
-    const archived = await api<{ threads?: Array<{ id: string; name: string }> }>(`/channels/${forumChannelId}/threads/archived/public?limit=100`);
-    for (const t of archived.threads || []) out.set(t.id, { id: t.id, name: t.name || `Thread ${t.id}` });
-  } catch {
-    // ignore
+  let before: string | undefined;
+  while (true) {
+    const params = new URLSearchParams({ limit: '100' });
+    if (before) params.set('before', before);
+    const response = await api<{ threads: ForumThread[]; has_more: boolean }>(
+      `/channels/${forumChannelId}/threads/archived/public?${params}`
+    );
+    const threads = response.threads || [];
+    for (const thread of threads) out.set(thread.id, thread);
+    if (!response.has_more || threads.length === 0) break;
+    const cursor = threads.at(-1)?.thread_metadata?.archive_timestamp;
+    if (!cursor || cursor === before) {
+      throw new Error(`Missing archive cursor for forum ${forumChannelId}`);
+    }
+    before = cursor;
   }
-
   return [...out.values()];
 }
 
@@ -397,6 +414,7 @@ async function main() {
   const guild = await api<Guild>(`/guilds/${env.guildId}?with_counts=true`);
   const channels = await api<Channel[]>(`/guilds/${env.guildId}/channels`);
   const included = channels.filter(isPublicChannel);
+  const activeThreads = included.some((c) => c.type === 15) ? await fetchActiveThreads() : [];
 
   await writeMeta(guild, channels, included);
 
@@ -427,8 +445,9 @@ async function main() {
         console.log(`Incremental #${channel.name}: +${newer.length} messages`);
       }
 
-      const forumThreads = channel.type === 15 ? await fetchForumThreads(channel.id) : [];
+      const forumThreads = channel.type === 15 ? await fetchForumThreads(channel.id, activeThreads) : [];
       const forumThreadNameMap = new Map(forumThreads.map((t) => [t.id, t.name]));
+      const forumTags = new Map((channel.available_tags || []).map((tag) => [tag.id, tag.name]));
 
       const threadIds = [...new Set([
         ...allMessages.map((m) => m.thread?.id).filter(Boolean),
@@ -471,7 +490,8 @@ async function main() {
             name,
             messageCount: threadStored.length,
             lastMessageAt: last?.timestamp,
-            preview: last?.content?.slice(0, 120)
+            preview: last?.content?.slice(0, 120),
+            tags: (forumThreads.find((t) => t.id === threadId)?.applied_tags || []).map((id) => forumTags.get(id)).filter((name): name is string => Boolean(name))
           });
         } catch (err) {
           console.warn(`Thread fetch failed ${threadId}`, err);
@@ -496,7 +516,8 @@ async function main() {
                   name: t.name,
                   messageCount: t.messageCount,
                   lastMessageAt: t.lastMessageAt,
-                  preview: t.preview
+                  preview: t.preview,
+                  tags: t.tags
                 }
               } as StoredMessage;
             })
