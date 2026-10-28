@@ -18,13 +18,6 @@ const parent = channels.find((c) => c.id === thread?.parentChannelId);
 const inviteUrl = import.meta.env.PUBLIC_DISCORD_INVITE_URL || '';
 const hasInvite = Boolean(inviteUrl);
 
-function shouldShowAuthor(messages: Array<{ author: string; timestamp: string }>, i: number) {
-  const prev = messages[i - 1];
-  if (!prev) return true;
-  const withinHour = (new Date(messages[i].timestamp).getTime() - new Date(prev.timestamp).getTime()) <= 3600000;
-  const sameAuthor = prev.author === messages[i].author;
-  return !(sameAuthor && withinHour);
-}
 ---
 <MainLayout title={thread ? `Thread · ${thread.name}` : 'Thread'} channels={channels} activeChannelId={parent?.id}>
   {thread ? (
@@ -32,14 +25,14 @@ function shouldShowAuthor(messages: Array<{ author: string; timestamp: string }>
       <header class="fixed top-0 left-0 right-0 lg:left-[280px] z-20 bg-background/95 backdrop-blur border-b border-line pb-3 px-4 lg:px-8 pt-4">
         <Breadcrumbs items={[
           { label: 'Channels', href: withBase("/channels") },
-          { label: `#${parent?.name ?? 'channel'}`, href: parent ? `/channels/${parent.slug}` : withBase("/channels") },
+          { label: `#${parent?.name ?? 'channel'}`, href: parent ? withBase(`/channels/${parent.slug}`) : withBase("/channels") },
           { label: thread.name }
         ]} />
         <h1 class="text-xl md:text-2xl font-semibold">{thread.name}</h1>
       </header>
 
       <article id="message-root" class={`mt-24 ${hasInvite ? 'pb-16' : 'pb-4'}`}>
-        {thread.messages.map((m, i) => <MessageItem message={m} showAuthor={shouldShowAuthor(thread.messages, i)} />)}
+        {thread.messages.map((m) => <MessageItem message={m} />)}
       </article>
 
       {hasInvite ? (
