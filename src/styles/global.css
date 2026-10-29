@@ -36,6 +36,47 @@ a { @apply text-blue-300 hover:text-blue-200; }
   overflow-wrap: anywhere;
   word-break: break-word;
 }
+
+/* Render GFM pipe tables as readable, horizontally scrollable HTML tables. */
+.discord-message-stream table {
+  display: block;
+  width: max-content;
+  max-width: 100%;
+  overflow-x: auto;
+  border-collapse: collapse;
+  margin: 0.75rem 0 1rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+.discord-message-stream th,
+.discord-message-stream td {
+  border: 1px solid #3f4147;
+  padding: 0.5rem 0.75rem;
+  min-width: 5rem;
+  vertical-align: top;
+  text-align: left;
+  white-space: normal;
+}
+.discord-message-stream th {
+  background: #313338;
+  font-weight: 600;
+  color: #f1f5f9;
+}
+.discord-message-stream td {
+  color: #cbd5e1;
+}
+.discord-message-stream tbody tr:nth-child(even) {
+  background: rgba(255, 255, 255, 0.035);
+}
+.discord-message-stream th[align="center"],
+.discord-message-stream td[align="center"] {
+  text-align: center;
+}
+.discord-message-stream th[align="right"],
+.discord-message-stream td[align="right"] {
+  text-align: right;
+}
+
 .discord-message-stream pre {
   @apply bg-[#1b1d20] border border-line rounded-lg p-3 overflow-x-auto;
 }
